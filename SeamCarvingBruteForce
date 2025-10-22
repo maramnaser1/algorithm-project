@@ -1,0 +1,140 @@
+import java.awt.image. BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio. ImageIO;
+import java.util.ArrayList;
+import java.util.List;
+public class SeamCarvingBruteForce {
+
+public static double[] [] computeEnergy(BufferedImage image) {
+int width = image.getWidth();
+int height = image.getHeight ();
+System. out.println("height="+height);
+System.out.println("width="+width);
+double [] [] energy = new double [height] [width];
+
+for (int y = 0; y < height; y++)
+{
+for (int x = 0; x < width; x++)
+{
+int D = (x == 0) ? 0 : getGray(image.getRGB(x -1, y));
+int F = (x == width - 1) ? 0 : getGray(image.getRGB(x + 1, y));
+int B = (y == 0) ? 0 : getGray(image.getRGB(x, y -1));
+int H = (y == height - 1) ? 0 : getGray(image.getRGB(x, y +1));
+int A = (x == 0 || y == 0) ? 0 : getGray(image.getRGB(x - 1, y - 1) ) ;
+int C = (x == width - 1 || y == 0) ? 0 : getGray(image.getRGB(x + 1, y -1) ) ;
+int G = (x == 0 || y == height - 1) ? 0 : getGray(image.getRGB(x -1, y + 1));
+int I = (x == width - 1 || y == height - 1) ? 0 : getGray(image.getRGB(x + 1, y +1));
+
+
+int dx = A + 2 * D + G - C - 2 * F - I;
+int dy = A + 2 * B + C - G - 2 * H - I;
+
+energy [y] [x] = Math.sqrt (dx * dx + dy * dy) ;
+}
+
+}
+return energy;
+}
+
+// Method to display the energy matrix
+public static void displayEnergyMatrix(double[] [] energy) {
+for (int y = 0; y < energy. length; y++) {
+for (int x = 0; x < energy[y] .length; x++) {
+System. out.printf ("%.2f ", energy[y] [x]) ; // Format
+}
+System. out.println (); // Move to the next row
+}
+System.out.println ("------------------------------------------------");
+}
+
+
+// Convert RGB to grayscale
+private static int getGray(int rgb) {
+int r = (rgb >> 16) & 0xFF;
+int g = (rgb >> 8) & 0xFF;
+int b = rgb & 0xFF;
+return (r + g + b) / 3;
+}
+
+
+// Main function to execute seam carving using brute force approach
+public static void main(String[] args) {
+try {
+BufferedImage image = ImageIO.read(new File("cartoon.jpg"));
+int numSeams = 50;
+
+
+for (int i = 0; i < numSeams; i++)
+{
+
+double[] [] energy = computeEnergy(image);
+int[] seam = findSeamBruteForce(energy);
+image= removeSeam(image, seam);
+}
+
+ImageIO. write(image, "jpg", new File("output_bruteforce33.jpg"));
+System. out.println("Seam carving complete. Saved as output_bruteforce.jpg");
+} catch (Exception e) {
+e.printStackTrace ();
+}
+}
+
+// Find the seam using brute force approach
+public static int[] findSeamBruteForce(double[] [] energy) {
+int height = energy.length;
+int width = energy [0].length;
+int [] bestSeam = new int [height];
+double minEnergy = Double. MAX_VALUE;
+
+int[] currentSeam = new int [height];
+findSeamRecursive(energy, currentSeam, 0, 0, 0, bestSeam, minEnergy);
+
+return bestSeam;
+
+}
+
+private static void findSeamRecursive(double[] [] energy, int [] currentSeam,int row, double currentEnergy,
+int currentIndex, int [] bestSeam, double minEnergy) {
+
+int width = energy [0].length;
+int height = energy.length;
+
+if (row == height) {
+if (currentEnergy < minEnergy) {
+minEnergy = currentEnergy;
+System. arraycopy(currentSeam, 0, bestSeam, 0, height);
+}
+
+return;
+
+}
+
+for (int i = 0; i < width; i++) {
+currentSeam[row] =i;
+findSeamRecursive(energy, currentSeam, row + 1,currentEnergy + energy [row] [i], i, bestSeam, minEnergy) ;
+}
+}
+// Remove the seam from the image
+public static BufferedImage removeSeam(BufferedImage image, int[] seam) {
+int width = image.getWidth();
+int height = image.getHeight();
+BufferedImage newImage = new BufferedImage(width - 1, height, BufferedImage.TYPE_INT_RGB);
+
+for (int y = 0; y < height; y++) {
+int newX = 0;
+for (int x = 0; x < width; x++) {
+if (x != seam[y]) {
+newImage.setRGB (newX++, y, image.getRGB(x, y) );
+
+}
+}
+}
+return newImage;
+
+}
+
+
+
+
+}
