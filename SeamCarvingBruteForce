@@ -7,53 +7,102 @@ import java.util.List;
 public class SeamCarvingBruteForce {
 
 public static double[] [] computeEnergy(BufferedImage image) {
-int width = image.getWidth();
-int height = image.getHeight ();
-System. out.println("height="+height);
+int width = img.getWidth();
+int height = img.getHeight();
+System.out.println("height="+height);
 System.out.println("width="+width);
-double [] [] energy = new double [height] [width];
+// To make sure of the width and height before using them
+double [] [] Energy = new double [height] [width];
 
-for (int y = 0; y < height; y++)
+for (int y = 0; y < height; y++) //Row
 {
-for (int x = 0; x < width; x++)
+for (int x = 0; x < width; x++) // Col
 {
-int D = (x == 0) ? 0 : getGray(image.getRGB(x -1, y));
-int F = (x == width - 1) ? 0 : getGray(image.getRGB(x + 1, y));
-int B = (y == 0) ? 0 : getGray(image.getRGB(x, y -1));
-int H = (y == height - 1) ? 0 : getGray(image.getRGB(x, y +1));
-int A = (x == 0 || y == 0) ? 0 : getGray(image.getRGB(x - 1, y - 1) ) ;
-int C = (x == width - 1 || y == 0) ? 0 : getGray(image.getRGB(x + 1, y -1) ) ;
-int G = (x == 0 || y == height - 1) ? 0 : getGray(image.getRGB(x -1, y + 1));
-int I = (x == width - 1 || y == height - 1) ? 0 : getGray(image.getRGB(x + 1, y +1));
+int a;
+if (x == 0 || y == 0) {
+    a = 0;
+} else {
+    a = getGray(img.getRGB(x - 1, y - 1));
+}
+
+int c;
+if (x == width - 1 || y == 0) {
+    c = 0;
+} else {
+    c = getGray(img.getRGB(x + 1, y - 1));
+}
+
+int d;
+if (x == 0) {
+    d = 0;
+} else {
+    d = getGray(img.getRGB(x - 1, y));
+}
+
+int f;
+if (x == width - 1) {
+    f = 0;
+} else {
+    f = getGray(img.getRGB(x + 1, y));
+}
+
+int g;
+if (x == 0 || y == height - 1) {
+    g = 0;
+} else {
+    g = getGray(img.getRGB(x - 1, y + 1));
+}
+
+int i;
+if (x == width - 1 || y == height - 1) {
+    i = 0;
+} else {
+    i = getGray(img.getRGB(x + 1, y + 1));
+}
+
+int b;
+if (y == 0) {
+    b = 0;
+} else {
+    b = getGray(img.getRGB(x, y - 1));
+}
+
+int h;
+if (y == height - 1) {
+    h = 0;
+} else {
+    h = getGray(img.getRGB(x, y + 1));
+}
 
 
-int dx = A + 2 * D + G - C - 2 * F - I;
-int dy = A + 2 * B + C - G - 2 * H - I;
+int Dx = a + 2 * d + g - c - 2 * f - i; // Famous way , Big difference means big change
+int Dy = a + 2 * b + c - g - 2 * h - i; // Famous way
 
-energy [y] [x] = Math.sqrt (dx * dx + dy * dy) ;
+Energy [y] [x] = Math.sqrt (Dx * Dx + Dy * Dy) ;
 }
 
 }
-return energy;
+return Energy;
 }
 
 // Method to display the energy matrix
-public static void displayEnergyMatrix(double[] [] energy) {
-for (int y = 0; y < energy. length; y++) {
-for (int x = 0; x < energy[y] .length; x++) {
-System. out.printf ("%.2f ", energy[y] [x]) ; // Format
+
+public static void DisplayEnergyMatrix(double[] [] Energy) {
+for (int y = 0; y < Energy.length; y++) {   // rows
+for (int x = 0; x < Energy[y].length; x++) {  // cols
+System. out.printf ("%.2f ", Energy[y] [x]) ; 
 }
 System. out.println (); // Move to the next row
 }
-System.out.println ("------------------------------------------------");
+System.out.println ("************************************");
 }
 
 
 // Convert RGB to grayscale
 private static int getGray(int rgb) {
-int r = (rgb >> 16) & 0xFF;
-int g = (rgb >> 8) & 0xFF;
-int b = rgb & 0xFF;
+int r = (rgb >> 16) & 0xFF; // Red
+int g = (rgb >> 8) & 0xFF; // Green
+int b = rgb & 0xFF; // Blue
 return (r + g + b) / 3;
 }
 
