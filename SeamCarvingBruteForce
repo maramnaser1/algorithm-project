@@ -1,3 +1,4 @@
+
 import java.awt.image. BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -6,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 public class SeamCarvingBruteForce {
 
-public static double[] [] computeEnergy(BufferedImage image) {
+public static double[] [] computeEnergy(BufferedImage img) {
 int width = img.getWidth();
 int height = img.getHeight();
 System.out.println("height="+height);
@@ -78,7 +79,7 @@ if (y == height - 1) {
 int xenergy = a + 2 * d + g - c - 2 * f - i; // Famous way , Big difference means big change
 int yenergy = a + 2 * b + c - g - 2 * h - i; // Famous way
 
-Energy [y] [x] = Math.sqrt (Dx * Dx + Dy * Dy) ;
+Energy [y] [x] = Math.sqrt (xenergy * xenergy + yenergy * yenergy) ;
 }
 
 }
@@ -110,9 +111,10 @@ return (r + g + b) / 3;
 // Main function to execute seam carving using brute force approach
 public static void main(String[] args) {
 try {
-BufferedImage img = ImageIO.read(new File("cartoon.jpg"));
+BufferedImage img = ImageIO.read(new File("Paris.jpg"));
 int numSeams = 50;
 
+System.err.println("mmmmmmmmmmm");
 
 for (int i = 0; i < numSeams; i++)
 {
