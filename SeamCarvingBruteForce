@@ -75,8 +75,8 @@ if (y == height - 1) {
 }
 
 
-int Dx = a + 2 * d + g - c - 2 * f - i; // Famous way , Big difference means big change
-int Dy = a + 2 * b + c - g - 2 * h - i; // Famous way
+int xenergy = a + 2 * d + g - c - 2 * f - i; // Famous way , Big difference means big change
+int yenergy = a + 2 * b + c - g - 2 * h - i; // Famous way
 
 Energy [y] [x] = Math.sqrt (Dx * Dx + Dy * Dy) ;
 }
@@ -110,19 +110,19 @@ return (r + g + b) / 3;
 // Main function to execute seam carving using brute force approach
 public static void main(String[] args) {
 try {
-BufferedImage image = ImageIO.read(new File("cartoon.jpg"));
+BufferedImage img = ImageIO.read(new File("cartoon.jpg"));
 int numSeams = 50;
 
 
 for (int i = 0; i < numSeams; i++)
 {
 
-double[] [] energy = computeEnergy(image);
-int[] seam = findSeamBruteForce(energy);
-image= removeSeam(image, seam);
+double[] [] Energy = computeEnergy(img);
+int[] seam = findSeamBruteForce(Energy);
+img= removeSeam(img, seam);
 }
 
-ImageIO. write(image, "jpg", new File("output_bruteforce33.jpg"));
+ImageIO. write(img, "jpg", new File("output_bruteforce33.jpg"));
 System. out.println("Seam carving complete. Saved as output_bruteforce.jpg");
 } catch (Exception e) {
 e.printStackTrace ();
@@ -130,24 +130,24 @@ e.printStackTrace ();
 }
 
 // Find the seam using brute force approach
-public static int[] findSeamBruteForce(double[] [] energy) {
-int height = energy.length;
-int width = energy [0].length;
+public static int[] findSeamBruteForce(double[] [] Energy) {
+int height = Energy.length;
+int width = Energy [0].length;
 int [] bestSeam = new int [height];
 double minEnergy = Double. MAX_VALUE;
 
 int[] currentSeam = new int [height];
-findSeamRecursive(energy, currentSeam, 0, 0, 0, bestSeam, minEnergy);
+findSeamRecursive(Energy, currentSeam, 0, 0, 0, bestSeam, minEnergy);
 
 return bestSeam;
 
 }
 
-private static void findSeamRecursive(double[] [] energy, int [] currentSeam,int row, double currentEnergy,
+private static void findSeamRecursive(double[] [] Energy, int [] currentSeam,int row, double currentEnergy,
 int currentIndex, int [] bestSeam, double minEnergy) {
 
-int width = energy [0].length;
-int height = energy.length;
+int width = Energy [0].length;
+int height = Energy.length;
 
 if (row == height) {
 if (currentEnergy < minEnergy) {
@@ -161,20 +161,20 @@ return;
 
 for (int i = 0; i < width; i++) {
 currentSeam[row] =i;
-findSeamRecursive(energy, currentSeam, row + 1,currentEnergy + energy [row] [i], i, bestSeam, minEnergy) ;
+findSeamRecursive(Energy, currentSeam, row + 1,currentEnergy + Energy [row] [i], i, bestSeam, minEnergy) ;
 }
 }
 // Remove the seam from the image
-public static BufferedImage removeSeam(BufferedImage image, int[] seam) {
-int width = image.getWidth();
-int height = image.getHeight();
+public static BufferedImage removeSeam(BufferedImage img, int[] seam) {
+int width = img.getWidth();
+int height = img.getHeight();
 BufferedImage newImage = new BufferedImage(width - 1, height, BufferedImage.TYPE_INT_RGB);
 
 for (int y = 0; y < height; y++) {
 int newX = 0;
 for (int x = 0; x < width; x++) {
 if (x != seam[y]) {
-newImage.setRGB (newX++, y, image.getRGB(x, y) );
+newImage.setRGB (newX++, y, img.getRGB(x, y) );
 
 }
 }
