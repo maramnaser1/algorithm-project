@@ -102,27 +102,37 @@ public class SeamCarvingBruteForce2 {
         return (r + g + b) / 3;
     }
 
+    
     // Main function to execute seam carving using brute force approach
-    public static void main(String[] args) {
-        try {
-            BufferedImage img = ImageIO.read(new File("fff.png"));
-            int numSeams = 1;
+public static void main(String[] args) {
+    try {
+        // Read input image (change filename if needed)
+        BufferedImage img = ImageIO.read(new File("fff.png"));
 
-            System.err.println("mmmmmmmmmmm");
+        // Print input image dimensions
+        System.out.println("Input image width: " + img.getWidth());
+        System.out.println("Input image height: " + img.getHeight());
 
-            for (int i = 0; i < numSeams; i++) {
+        int numSeams = 1; // number of vertical seams to remove (adjust as needed)
 
-                double[][] Energy = computeEnergy(img);
-                int[] seam = findSeamBruteForce(Energy);
-                img = removeSeam(img, seam);
-            }
-
-            ImageIO.write(img, "jpg", new File("output_bruteforce33.jpg"));
-            System.out.println("Seam carving complete. Saved as output_bruteforce.jpg");
-        } catch (Exception e) {
-            e.printStackTrace();
+        for (int i = 0; i < numSeams; i++) {
+            double[][] Energy = computeEnergy(img);
+            int[] seam = findSeamBruteForce(Energy);
+            img = removeSeam(img, seam);
         }
+
+        ImageIO.write(img, "jpg", new File("output_bruteforce33.jpg"));
+
+        // Print output image dimensions
+        System.out.println("Output image width: " + img.getWidth());
+        System.out.println("Output image height: " + img.getHeight());
+
+        System.out.println("Seam carving complete. Saved as output_bruteforce33.jpg");
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
+
 
     // Find the seam using brute force approach
     public static int[] findSeamBruteForce(double[][] Energy) {
