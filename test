@@ -1,7 +1,196 @@
-//
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
 
+public class SeamCarvingBruteForce2 {
 
+    public static double[][] computeEnergy(BufferedImage img) {
+        int width = img.getWidth();
+        int height = img.getHeight();
+        System.out.println("height=" + height);
+        System.out.println("width=" + width);
+        // To make sure of the width and height before using them
+        double[][] Energy = new double[height][width];
 
+        for (int y = 0; y < height; y++) //Row
+        {
+            for (int x = 0; x < width; x++) // Col
+            {
+                int a;
+                if (x == 0 || y == 0) {
+                    a = 0;
+                } else {
+                    a = getGray(img.getRGB(x - 1, y - 1));
+                }
 
+                int c;
+                if (x == width - 1 || y == 0) {
+                    c = 0;
+                } else {
+                    c = getGray(img.getRGB(x + 1, y - 1));
+                }
 
-//
+                int d;
+                if (x == 0) {
+                    d = 0;
+                } else {
+                    d = getGray(img.getRGB(x - 1, y));
+                }
+
+                int f;
+                if (x == width - 1) {
+                    f = 0;
+                } else {
+                    f = getGray(img.getRGB(x + 1, y));
+                }
+
+                int g;
+                if (x == 0 || y == height - 1) {
+                    g = 0;
+                } else {
+                    g = getGray(img.getRGB(x - 1, y + 1));
+                }
+
+                int i;
+                if (x == width - 1 || y == height - 1) {
+                    i = 0;
+                } else {
+                    i = getGray(img.getRGB(x + 1, y + 1));
+                }
+
+                int b;
+                if (y == 0) {
+                    b = 0;
+                } else {
+                    b = getGray(img.getRGB(x, y - 1));
+                }
+
+                int h;
+                if (y == height - 1) {
+                    h = 0;
+                } else {
+                    h = getGray(img.getRGB(x, y + 1));
+                }
+
+                int xenergy = a + 2 * d + g - c - 2 * f - i; // Famous way , Big difference means big change
+                int yenergy = a + 2 * b + c - g - 2 * h - i; // Famous way
+
+                Energy[y][x] = Math.sqrt(xenergy * xenergy + yenergy * yenergy);
+            }
+
+        }
+        return Energy;
+    }
+
+    // Method to display the energy matrix
+
+    public static void DisplayEnergyMatrix(double[][] Energy) {
+        for (int y = 0; y < Energy.length; y++) {   // rows
+            for (int x = 0; x < Energy[y].length; x++) {  // cols
+                System.out.printf("%.2f ", Energy[y][x]);
+            }
+            System.out.println(); // Move to the next row
+        }
+        System.out.println("************************************");
+    }
+
+    // Convert RGB to grayscale
+    private static int getGray(int rgb) {
+        int r = (rgb >> 16) & 0xFF; // Red
+        int g = (rgb >> 8) & 0xFF; // Green
+        int b = rgb & 0xFF; // Blue
+        return (r + g + b) / 3;
+    }
+
+    // Main function to execute seam carving using brute force approach
+    public static void main(String[] args) {
+        try {
+            BufferedImage img = ImageIO.read(new File("fff.png"));
+            int numSeams = 1;
+
+            System.err.println("mmmmmmmmmmm");
+
+            for (int i = 0; i < numSeams; i++) {
+
+                double[][] Energy = computeEnergy(img);
+                int[] seam = findSeamBruteForce(Energy);
+                img = removeSeam(img, seam);
+            }
+
+            ImageIO.write(img, "jpg", new File("output_bruteforce33.jpg"));
+            System.out.println("Seam carving complete. Saved as output_bruteforce.jpg");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Find the seam using brute force approach
+    public static int[] findSeamBruteForce(double[][] Energy) {
+        int height = Energy.length;
+        int width = Energy[0].length;
+        int[] bestSeam = new int[height];
+
+        // Use a mutable holder so recursive calls can update the best energy
+        double[] minEnergyHolder = new double[]{Double.MAX_VALUE};
+
+        int[] currentSeam = new int[height];
+
+        // Start from every possible column in the first row (as before)
+        for (int startCol = 0; startCol < width; startCol++) {
+            currentSeam[0] = startCol;
+            // Start recursion from row 1 with energy of the starting pixel
+            findSeamRecursive(Energy, currentSeam, 1, Energy[0][startCol], bestSeam, minEnergyHolder);
+        }
+
+        return bestSeam;
+
+    }
+
+    // Recursive helper (fixed): enforce connectivity and update minEnergy via holder
+    private static void findSeamRecursive(double[][] Energy, int[] currentSeam, int row, double currentEnergy,
+                                          int[] bestSeam, double[] minEnergyHolder) {
+
+        int width = Energy[0].length;
+        int height = Energy.length;
+
+        if (row == height) {
+            if (currentEnergy < minEnergyHolder[0]) {
+                minEnergyHolder[0] = currentEnergy;
+                System.arraycopy(currentSeam, 0, bestSeam, 0, height);
+            }
+
+            return;
+
+        }
+
+        int prevCol = currentSeam[row - 1];
+
+        // Only allow connected moves: prevCol-1, prevCol, prevCol+1
+        for (int dc = -1; dc <= 1; dc++) {
+            int col = prevCol + dc;
+            if (col < 0 || col >= width) continue;
+            currentSeam[row] = col;
+            findSeamRecursive(Energy, currentSeam, row + 1, currentEnergy + Energy[row][col], bestSeam, minEnergyHolder);
+        }
+    }
+
+    // Remove the seam from the image
+    public static BufferedImage removeSeam(BufferedImage img, int[] seam) {
+        int width = img.getWidth();
+        int height = img.getHeight();
+        BufferedImage newImage = new BufferedImage(width - 1, height, BufferedImage.TYPE_INT_RGB);
+
+        for (int y = 0; y < height; y++) {
+            int newX = 0;
+            for (int x = 0; x < width; x++) {
+                if (x != seam[y]) {
+                    newImage.setRGB(newX++, y, img.getRGB(x, y));
+
+                }
+            }
+        }
+        return newImage;
+
+    }
+
+}
