@@ -9,14 +9,13 @@ public class BF{
     public static void main(String[] args) {
         try {
             Scanner scan = new Scanner(System.in);
-            System.out.print("Enter image path (e.g. C:\\\\Users\\\\Hessa\\\\Downloads\\\\museum.jpg): ");
-            String imagePath = scan.nextLine();
+        
             System.out.print("Enter number of seams to remove: ");
             int seamsToRemove = scan.nextInt();
             scan.close();
 
             // Load input image
-            File inputFile = new File(imagePath);
+            File inputFile = new File("fff.png");
             BufferedImage image = ImageIO.read(inputFile);
 
             // Show original image size
@@ -32,12 +31,9 @@ public class BF{
             // Show new image size
             System.out.println("New image size: width = " + image.getWidth() + ", height = " + image.getHeight());
 
-            // Save the modified image to the desktop
-            String outputImagePath = System.getProperty("user.home") + "/Desktop/newimage_BF.jpg";
-            ImageIO.write(image, "jpg", new File(outputImagePath));
-
+            ImageIO.write(image, "jpg", new File("output_bruteforce11.jpg"));
             System.out.println("✅ Seam carving completed using Brute Force.");
-            System.out.println("Modified image saved at: " + outputImagePath);
+            
         } catch (IOException e) {
             System.out.println("❌ Error processing the image file.");
             e.printStackTrace();
@@ -144,3 +140,4 @@ public class BF{
         return newImage;
     }
 }
+
