@@ -80,12 +80,12 @@ public class ImageReducer {
             }
         }
 
-        int gradientX = colorMatrix[0][0] + 2 * colorMatrix[1][0] + colorMatrix[2][0]
+        int xenergy = colorMatrix[0][0] + 2 * colorMatrix[1][0] + colorMatrix[2][0]
                       - colorMatrix[0][2] - 2 * colorMatrix[1][2] - colorMatrix[2][2];
-        int gradientY = colorMatrix[0][0] + 2 * colorMatrix[0][1] + colorMatrix[0][2]
+        int yenergy = colorMatrix[0][0] + 2 * colorMatrix[0][1] + colorMatrix[0][2]
                       - colorMatrix[2][0] - 2 * colorMatrix[2][1] - colorMatrix[2][2];
 
-        return Math.sqrt(gradientX * gradientX + gradientY * gradientY);
+        return Math.sqrt(xenergy * xenergy + yenergy * yenergy);
     }
 
     // ------------------------- SEAM SELECTION -------------------------
