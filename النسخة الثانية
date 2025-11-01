@@ -11,15 +11,13 @@ public class ImageReducer {
         try {
             Scanner input = new Scanner(System.in);
 
-            System.out.print("Insert the path of your image (example: C:\\\\Users\\\\Lina\\\\Downloads\\\\photo.jpg): ");
-            String sourcePath = input.nextLine();
-
+            
             System.out.print("How many seams would you like to delete? ");
             int seamCount = input.nextInt();
             input.close();
 
             // Load the selected image
-            File sourceFile = new File(sourcePath);
+            File sourceFile = new File("fff.png");
             BufferedImage loadedImage = ImageIO.read(sourceFile);
 
             System.out.println("→ Original dimensions: width = " + loadedImage.getWidth() + ", height = " + loadedImage.getHeight());
@@ -34,12 +32,11 @@ public class ImageReducer {
             // Display final image dimensions
             System.out.println("→ Updated dimensions: width = " + loadedImage.getWidth() + ", height = " + loadedImage.getHeight());
 
-            // Save final result to desktop
-            String destination = System.getProperty("user.home") + "/Desktop/result_BF.jpg";
-            ImageIO.write(loadedImage, "jpg", new File(destination));
+            // Save final result 
+            ImageIO.write(loadedImage, "jpg", new File("output_bruteforce1.jpg"));
 
             System.out.println("✅ Brute Force seam carving successfully done!");
-            System.out.println("✔ Result saved at: " + destination);
+          
 
         } catch (IOException ex) {
             System.out.println("⚠️ There was an issue reading or saving the image file.");
