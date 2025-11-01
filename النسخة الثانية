@@ -5,142 +5,151 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.util.Scanner;
 
-public class BF{
+public class ImageReducer {
+
     public static void main(String[] args) {
         try {
-            Scanner scan = new Scanner(System.in);
-            System.out.print("Enter image path (e.g. C:\\\\Users\\\\Hessa\\\\Downloads\\\\museum.jpg): ");
-            String imagePath = scan.nextLine();
-            System.out.print("Enter number of seams to remove: ");
-            int seamsToRemove = scan.nextInt();
-            scan.close();
+            Scanner input = new Scanner(System.in);
 
-            // Load input image
-            File inputFile = new File(imagePath);
-            BufferedImage image = ImageIO.read(inputFile);
+            System.out.print("Insert the path of your image (example: C:\\\\Users\\\\Lina\\\\Downloads\\\\photo.jpg): ");
+            String sourcePath = input.nextLine();
 
-            // Show original image size
-            System.out.println("Original image size: width = " + image.getWidth() + ", height = " + image.getHeight());
+            System.out.print("How many seams would you like to delete? ");
+            int seamCount = input.nextInt();
+            input.close();
 
-            // Apply Brute Force seam carving
-            for (int i = 0; i < seamsToRemove; i++) {
-                double[][] energyMatrix = computeEnergyMatrix(image);
-                int[] seam = findLowestEnergySeamBF(energyMatrix);
-                image = removeSeam(image, seam);
+            // Load the selected image
+            File sourceFile = new File(sourcePath);
+            BufferedImage loadedImage = ImageIO.read(sourceFile);
+
+            System.out.println("→ Original dimensions: width = " + loadedImage.getWidth() + ", height = " + loadedImage.getHeight());
+
+            // Run brute-force seam carving step by step
+            for (int s = 0; s < seamCount; s++) {
+                double[][] pixelEnergy = generateEnergyMap(loadedImage);
+                int[] bestPath = locateMinimalSeam(pixelEnergy);
+                loadedImage = cutSeam(loadedImage, bestPath);
             }
 
-            // Show new image size
-            System.out.println("New image size: width = " + image.getWidth() + ", height = " + image.getHeight());
+            // Display final image dimensions
+            System.out.println("→ Updated dimensions: width = " + loadedImage.getWidth() + ", height = " + loadedImage.getHeight());
 
-            // Save the modified image to the desktop
-            String outputImagePath = System.getProperty("user.home") + "/Desktop/newimage_BF.jpg";
-            ImageIO.write(image, "jpg", new File(outputImagePath));
+            // Save final result to desktop
+            String destination = System.getProperty("user.home") + "/Desktop/result_BF.jpg";
+            ImageIO.write(loadedImage, "jpg", new File(destination));
 
-            System.out.println("✅ Seam carving completed using Brute Force.");
-            System.out.println("Modified image saved at: " + outputImagePath);
-        } catch (IOException e) {
-            System.out.println("❌ Error processing the image file.");
-            e.printStackTrace();
+            System.out.println("✅ Brute Force seam carving successfully done!");
+            System.out.println("✔ Result saved at: " + destination);
+
+        } catch (IOException ex) {
+            System.out.println("⚠️ There was an issue reading or saving the image file.");
+            ex.printStackTrace();
         }
     }
 
-    // --- Compute Energy Matrix ---
-    public static double[][] computeEnergyMatrix(BufferedImage image) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-        double[][] energy = new double[height][width];
+    // ------------------------- ENERGY MAP -------------------------
+    // Builds an energy map for each pixel to represent its importance in the image
+    public static double[][] generateEnergyMap(BufferedImage img) {
+        int width = img.getWidth();
+        int height = img.getHeight();
+        double[][] map = new double[height][width];
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                energy[y][x] = computePixelEnergy(image, x, y);
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                map[row][col] = calculateEnergyValue(img, col, row);
             }
         }
-        return energy;
+        return map;
     }
 
-    // --- Compute Pixel Energy (Sobel operator) ---
-    private static double computePixelEnergy(BufferedImage image, int x, int y) {
-        int[][] brightness = new int[3][3];
-        for (int i = -1; i <= 1; i++) {
-            for (int j = -1; j <= 1; j++) {
-                int newX = x + i;
-                int newY = y + j;
-                if (newX < 0 || newX >= image.getWidth() || newY < 0 || newY >= image.getHeight()) {
-                    brightness[i + 1][j + 1] = 0;
+    // ------------------------- ENERGY CALCULATION -------------------------
+    // Determines pixel energy using a simplified Sobel-like gradient
+    private static double calculateEnergyValue(BufferedImage img, int x, int y) {
+        int[][] colorMatrix = new int[3][3];
+        for (int offsetY = -1; offsetY <= 1; offsetY++) {
+            for (int offsetX = -1; offsetX <= 1; offsetX++) {
+                int posX = x + offsetX;
+                int posY = y + offsetY;
+
+                if (posX < 0 || posY < 0 || posX >= img.getWidth() || posY >= img.getHeight()) {
+                    colorMatrix[offsetY + 1][offsetX + 1] = 0;
                 } else {
-                    Color color = new Color(image.getRGB(newX, newY));
-                    brightness[i + 1][j + 1] = color.getRed() + color.getGreen() + color.getBlue();
+                    Color px = new Color(img.getRGB(posX, posY));
+                    colorMatrix[offsetY + 1][offsetX + 1] = px.getRed() + px.getGreen() + px.getBlue();
                 }
             }
         }
 
-        int xEnergy = brightness[0][0] + 2 * brightness[1][0] + brightness[2][0]
-                    - brightness[0][2] - 2 * brightness[1][2] - brightness[2][2];
-        int yEnergy = brightness[0][0] + 2 * brightness[0][1] + brightness[0][2]
-                    - brightness[2][0] - 2 * brightness[2][1] - brightness[2][2];
+        int gradientX = colorMatrix[0][0] + 2 * colorMatrix[1][0] + colorMatrix[2][0]
+                      - colorMatrix[0][2] - 2 * colorMatrix[1][2] - colorMatrix[2][2];
+        int gradientY = colorMatrix[0][0] + 2 * colorMatrix[0][1] + colorMatrix[0][2]
+                      - colorMatrix[2][0] - 2 * colorMatrix[2][1] - colorMatrix[2][2];
 
-        return Math.sqrt(xEnergy * xEnergy + yEnergy * yEnergy);
+        return Math.sqrt(gradientX * gradientX + gradientY * gradientY);
     }
 
-    // --- Brute Force Seam Finding ---
-    public static int[] findLowestEnergySeamBF(double[][] energyMatrix) {
-        int height = energyMatrix.length;
-        int width = energyMatrix[0].length;
-        int[] bestSeam = new int[height];
-        double minEnergy = Double.POSITIVE_INFINITY;
+    // ------------------------- SEAM SELECTION -------------------------
+    // Finds the seam with the smallest cumulative energy (brute-force approach)
+    public static int[] locateMinimalSeam(double[][] energyMap) {
+        int h = energyMap.length;
+        int w = energyMap[0].length;
+        int[] lowestPath = new int[h];
+        double smallestEnergy = Double.MAX_VALUE;
 
-        for (int startX = 0; startX < width; startX++) {
-            int[] seam = new int[height];
-            double seamEnergy = traceSeam(energyMatrix, startX, 0, seam);
+        for (int start = 0; start < w; start++) {
+            int[] currentSeam = new int[h];
+            double currentEnergy = exploreSeam(energyMap, start, 0, currentSeam);
 
-            if (seamEnergy < minEnergy || (seamEnergy == minEnergy && startX < bestSeam[0])) {
-                minEnergy = seamEnergy;
-                System.arraycopy(seam, 0, bestSeam, 0, height);
+            if (currentEnergy < smallestEnergy || (currentEnergy == smallestEnergy && start < lowestPath[0])) {
+                smallestEnergy = currentEnergy;
+                System.arraycopy(currentSeam, 0, lowestPath, 0, h);
             }
         }
-        return bestSeam;
+        return lowestPath;
     }
 
-    private static double traceSeam(double[][] energyMatrix, int x, int y, int[] seam) {
-        int height = energyMatrix.length;
-        int width = energyMatrix[0].length;
-        seam[y] = x;
+    // Recursive exploration of all possible seam paths
+    private static double exploreSeam(double[][] energyMap, int x, int y, int[] route) {
+        int h = energyMap.length;
+        int w = energyMap[0].length;
+        route[y] = x;
 
-        if (y == height - 1) {
-            return energyMatrix[y][x];
+        if (y == h - 1) {
+            return energyMap[y][x];
         }
 
-        double minEnergy = Double.POSITIVE_INFINITY;
-        for (int dx = -1; dx <= 1; dx++) {
-            int nextX = x + dx;
-            if (nextX >= 0 && nextX < width) {
-                int[] tempSeam = new int[height];
-                System.arraycopy(seam, 0, tempSeam, 0, height);
-                double nextEnergy = traceSeam(energyMatrix, nextX, y + 1, tempSeam);
-                if (nextEnergy < minEnergy) {
-                    minEnergy = nextEnergy;
-                    System.arraycopy(tempSeam, 0, seam, 0, height);
+        double minCost = Double.MAX_VALUE;
+        for (int shift = -1; shift <= 1; shift++) {
+            int nextX = x + shift;
+            if (nextX >= 0 && nextX < w) {
+                int[] tempRoute = new int[h];
+                System.arraycopy(route, 0, tempRoute, 0, h);
+                double nextCost = exploreSeam(energyMap, nextX, y + 1, tempRoute);
+                if (nextCost < minCost) {
+                    minCost = nextCost;
+                    System.arraycopy(tempRoute, 0, route, 0, h);
                 }
             }
         }
-        return energyMatrix[y][x] + minEnergy;
+        return energyMap[y][x] + minCost;
     }
 
-    // --- Remove Seam ---
-    public static BufferedImage removeSeam(BufferedImage image, int[] seam) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-        BufferedImage newImage = new BufferedImage(width - 1, height, BufferedImage.TYPE_INT_RGB);
+    // ------------------------- SEAM REMOVAL -------------------------
+    // Removes the specified seam from the given image
+    public static BufferedImage cutSeam(BufferedImage img, int[] seamPath) {
+        int width = img.getWidth();
+        int height = img.getHeight();
+        BufferedImage output = new BufferedImage(width - 1, height, BufferedImage.TYPE_INT_RGB);
 
         for (int y = 0; y < height; y++) {
             int newX = 0;
             for (int x = 0; x < width; x++) {
-                if (x != seam[y]) {
-                    newImage.setRGB(newX, y, image.getRGB(x, y));
+                if (x != seamPath[y]) {
+                    output.setRGB(newX, y, img.getRGB(x, y));
                     newX++;
                 }
             }
         }
-        return newImage;
+        return output;
     }
 }
