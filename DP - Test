@@ -1,0 +1,72 @@
+package DPproject;
+
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
+public class Test {
+	  // Convert image to Color matrix
+    public static Color[][] bufferedToColorArray(BufferedImage img) {
+        int rows = img.getHeight();
+        int cols = img.getWidth();
+        Color[][] arr = new Color[rows][cols];
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                arr[r][c] = new Color(img.getRGB(c, r));
+            }
+        }
+        return arr;
+    }
+
+    // Convert Color matrix back to BufferedImage
+    public static BufferedImage colorArrayToBuffered(Color[][] arr) {
+        int rows = arr.length;
+        int cols = arr[0].length;
+
+        BufferedImage img = new BufferedImage(cols, rows, BufferedImage.TYPE_INT_RGB);
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                img.setRGB(c, r, arr[r][c].getRGB());
+            }
+        }
+        return img;
+    }
+	
+		
+		  
+		    public static void main(String[] args) {
+		        try {
+		            // Load image from project folder
+		            BufferedImage input = ImageIO.read(new File("images/castle.png"));
+
+		            // Convert image to Color[][]
+		            Color[][] matrix = bufferedToColorArray(input);
+
+		            // Create seam carver
+		            DP sc = new DP(matrix);
+
+		            // Remove JUST 1 seam to test correctness
+		            int[] seam = sc.findVerticalSeam();
+
+		            System.out.println("Seam positions:");
+		            for (int i = 0; i < seam.length; i++) {
+		                System.out.println("Row " + i + ": Col " + seam[i]);
+		            }
+
+		            sc.removeVerticalSeam(seam);
+
+		            // Convert back to image and save result
+		            Color[][] newImgArr = sc.getImage();
+		            BufferedImage output = colorArrayToBuffered(newImgArr);
+
+		            ImageIO.write(output, "png", new File("images/output.png"));
+
+		            System.out.println("Done! Check the file: images/output.png");
+
+		        } catch (Exception e) {
+		            System.out.println("Error: " + e);
+		        }
+		    }
+		}
