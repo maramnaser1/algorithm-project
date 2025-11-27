@@ -1,0 +1,74 @@
+package seamcarving;
+
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
+
+public class MainGreedy {
+
+    // Convert BufferedImage → Color[][]
+    public static Color[][] bufferedToColorArray(BufferedImage img) {
+        int rows = img.getHeight();
+        int cols = img.getWidth();
+        Color[][] arr = new Color[rows][cols];
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                arr[r][c] = new Color(img.getRGB(c, r));
+            }
+        }
+        return arr;
+    }
+
+    // Convert Color[][] → BufferedImage
+    public static BufferedImage colorArrayToBuffered(Color[][] arr) {
+        int rows = arr.length;
+        int cols = arr[0].length;
+
+        BufferedImage img = new BufferedImage(cols, rows, BufferedImage.TYPE_INT_RGB);
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                img.setRGB(c, r, arr[r][c].getRGB());
+            }
+        }
+        return img;
+    }
+
+    public static void main(String[] args) {
+
+        try {
+            // Load test image
+            BufferedImage input = ImageIO.read(new File("images/test.png"));
+            // يمكنك تغيير "test.png" لأي صورة من صور الدكتورة
+
+            // Convert to Color[][]
+            Color[][] matrix = bufferedToColorArray(input);
+
+            // Create Greedy seam carver
+            GreedySeamCarver gsc = new GreedySeamCarver(matrix);
+
+            // ---- Try removing 1 seam (for testing correctness) ----
+            int[] seam = gsc.findVerticalSeamGreedy();
+
+            System.out.println("Greedy Seam (one column per row):");
+            for (int r = 0; r < seam.length; r++) {
+                System.out.println("Row " + r + " → Column " + seam[r]);
+            }
+
+            // Remove seam
+            gsc.removeVerticalSeam(seam);
+
+            // ---- Save new image ----
+            BufferedImage output = colorArrayToBuffered(gsc.getImage());
+
+            ImageIO.write(output, "png", new File("images/greedy_output.png"));
+
+            System.out.println("Done! Check the file: images/greedy_output.png");
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e);
+        }
+    }
+}
