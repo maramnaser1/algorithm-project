@@ -1,8 +1,8 @@
-package seamcarving;
-
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Scanner;
+
 import javax.imageio.ImageIO;
 
 public class MainGreedy {
@@ -38,9 +38,11 @@ public class MainGreedy {
 
     public static void main(String[] args) {
 
+        Scanner scanner = new Scanner(System.in);
+
         try {
             // Load test image
-            BufferedImage input = ImageIO.read(new File("images/test.png"));
+            BufferedImage input = ImageIO.read(new File("cartoon(1).jpg"));
            
             // Convert to Color[][]
             Color[][] matrix = bufferedToColorArray(input);
@@ -48,26 +50,26 @@ public class MainGreedy {
             // Create Greedy seam carver
             GreedySeamCarver gsc = new GreedySeamCarver(matrix);
 
-            // ---- Try removing 1 seam (for testing correctness) ----
-            int[] seam = gsc.findVerticalSeamGreedy();
+            // Ask user how many seams to remove
+            System.out.print("Enter number of vertical seams to remove: ");
+            int numSeamsToRemove = scanner.nextInt();
 
-            System.out.println("Greedy Seam (one column per row):");
-            for (int r = 0; r < seam.length; r++) {
-                System.out.println("Row " + r + " → Column " + seam[r]);
+            // Remove seams
+            for (int i = 0; i < numSeamsToRemove; i++) {
+                int[] seam = gsc.findVerticalSeamGreedy();
+                gsc.removeVerticalSeam(seam);
             }
 
-            // Remove seam
-            gsc.removeVerticalSeam(seam);
-
-            // ---- Save new image ----
+            // Save new image
             BufferedImage output = colorArrayToBuffered(gsc.getImage());
+            ImageIO.write(output, "png", new File("greedy_output.jpg"));
 
-            ImageIO.write(output, "png", new File("images/greedy_output.png"));
-
-            System.out.println("Done! Check the file: images/greedy_output.png");
+            System.out.println("Done! Check the file: images/greedy_output.jpg");
 
         } catch (Exception e) {
             System.out.println("Error: " + e);
+        } finally {
+            scanner.close();
         }
     }
 }
