@@ -1,0 +1,127 @@
+package seamcarving;
+
+import java.awt.Color;
+
+public class GreedySeamCarver {
+
+    private Color[][] image;
+    private int rows;
+    private int cols;
+
+    public GreedySeamCarver(Color[][] inputImage) {
+        this.image = inputImage;
+        this.rows = image.length;
+        this.cols = image[0].length;
+    }
+
+    // ---------------------------------------------------------
+    // 1. Compute Energy (Same formula as DP version)
+    // ---------------------------------------------------------
+    public double[][] computeEnergy() {
+        double[][] energy = new double[rows][cols];
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                energy[r][c] = pixelEnergy(r, c);
+            }
+        }
+        return energy;
+    }
+
+    private double pixelEnergy(int r, int c) {
+
+        Color up = (r == 0) ? new Color(0, 0, 0) : image[r - 1][c];
+        Color down = (r == rows - 1) ? new Color(0, 0, 0) : image[r + 1][c];
+        Color left = (c == 0) ? new Color(0, 0, 0) : image[r][c - 1];
+        Color right = (c == cols - 1) ? new Color(0, 0, 0) : image[r][c + 1];
+
+        int upB = up.getRed() + up.getGreen() + up.getBlue();
+        int downB = down.getRed() + down.getGreen() + down.getBlue();
+        int leftB = left.getRed() + left.getGreen() + left.getBlue();
+        int rightB = right.getRed() + right.getGreen() + right.getBlue();
+
+        double dx = rightB - leftB;
+        double dy = downB - upB;
+
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // ---------------------------------------------------------
+    // 2. Find Vertical Seam (Greedy Only)
+    // ---------------------------------------------------------
+    public int[] findVerticalSeamGreedy() {
+
+        double[][] energy = computeEnergy();
+        int[] seam = new int[rows];
+
+        // Step 1: choose lowest energy pixel in first row
+        int minCol = 0;
+        for (int c = 1; c < cols; c++) {
+            if (energy[0][c] < energy[0][minCol]) {
+                minCol = c;
+            }
+        }
+        seam[0] = minCol;
+
+        // Step 2: greedy walk downwards
+        for (int r = 1; r < rows; r++) {
+
+            int prevCol = seam[r - 1];
+            int bestCol = prevCol;
+            double bestEnergy = energy[r][prevCol];
+
+            // check left-down
+            if (prevCol > 0 && energy[r][prevCol - 1] < bestEnergy) {
+                bestEnergy = energy[r][prevCol - 1];
+                bestCol = prevCol - 1;
+            }
+
+            // check right-down
+            if (prevCol < cols - 1 && energy[r][prevCol + 1] < bestEnergy) {
+                bestEnergy = energy[r][prevCol + 1];
+                bestCol = prevCol + 1;
+            }
+
+            seam[r] = bestCol;
+        }
+
+        return seam;
+    }
+
+    // ---------------------------------------------------------
+    // 3. Remove Vertical Seam (same as DP version)
+    // ---------------------------------------------------------
+    public void removeVerticalSeam(int[] seam) {
+        Color[][] newImage = new Color[rows][cols - 1];
+
+        for (int r = 0; r < rows; r++) {
+            int colRemove = seam[r];
+            int newCol = 0;
+
+            for (int c = 0; c < cols; c++) {
+                if (c != colRemove) {
+                    newImage[r][newCol] = image[r][c];
+                    newCol++;
+                }
+            }
+        }
+
+        this.image = newImage;
+        this.cols -= 1;
+    }
+
+    // ---------------------------------------------------------
+    // 4. Remove multiple seams greedily
+    // ---------------------------------------------------------
+    public void shrinkWidthGreedy(int numberOfSeams) {
+        for (int i = 0; i < numberOfSeams; i++) {
+            int[] seam = findVerticalSeamGreedy();
+            removeVerticalSeam(seam);
+        }
+    }
+
+    // Getter
+    public Color[][] getImage() {
+        return image;
+    }
+}
