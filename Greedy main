@@ -7,7 +7,7 @@ import javax.imageio.ImageIO;
 
 public class MainGreedy {
 
-    // Convert BufferedImage → Color[][]
+    // Convert BufferedImage to Color[][]
     public static Color[][] bufferedToColorArray(BufferedImage img) {
         int rows = img.getHeight();
         int cols = img.getWidth();
@@ -21,7 +21,7 @@ public class MainGreedy {
         return arr;
     }
 
-    // Convert Color[][] → BufferedImage
+    // Convert Color[][] to BufferedImage
     public static BufferedImage colorArrayToBuffered(Color[][] arr) {
         int rows = arr.length;
         int cols = arr[0].length;
@@ -41,8 +41,7 @@ public class MainGreedy {
         try {
             // Load test image
             BufferedImage input = ImageIO.read(new File("images/test.png"));
-            // يمكنك تغيير "test.png" لأي صورة من صور الدكتورة
-
+           
             // Convert to Color[][]
             Color[][] matrix = bufferedToColorArray(input);
 
